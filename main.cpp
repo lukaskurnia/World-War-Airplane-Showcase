@@ -116,11 +116,11 @@ int main()
         glViewport(0, 0, width, height);
         float ratio = width / (float)height;
 
-        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 2.f + zoom, -2.f + zoom);
 
-        vec3 eye = {0.f, 0.f, 0.f + zoom};
-        vec3 center = {0.f, 0.f, -2.f + zoom};
-        vec3 up = {0.f, 1.f, 0.f + zoom};
+        vec3 eye = {0.f, 0.f, 1.f};
+        vec3 center = {0.f, 0.f, 0.f};
+        vec3 up = {0.f, 1.f, 0.f};
         mat4x4_look_at(m, eye, center, up);
 
         mat4x4_rotate_X(m, m, rotationX);
@@ -129,11 +129,10 @@ int main()
 
         mat4x4_mul(mvp, p, m);
 
-        // Draw our first triangle
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (GLfloat *)mvp);
-        glDrawArrays(GL_TRIANGLES, 0, 12);
+        glDrawArrays(GL_TRIANGLES, 0, 40);
         glBindVertexArray(0);
 
         // Swap the screen buffers
@@ -173,15 +172,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         // rotationX += 0.05;
         rotationZ -= 0.05;
     else if (key == GLFW_KEY_W && action == GLFW_REPEAT)
-        zoom += 0.01;
+        zoom += 0.05;
     else if (key == GLFW_KEY_S && action == GLFW_REPEAT)
-        zoom -= 0.01;
+        zoom -= 0.05;
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
         rotationY = 0;
         rotationZ = 0;
-        zoom = 1;
+        zoom = 0;
     }
 }
 
