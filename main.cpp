@@ -53,6 +53,9 @@ float centerX = 0;
 float centerY = 0;
 float centerZ = 0;
 
+bool shaderAttached = true;
+GLuint vertexShader, fragmentShader, shaderProgram, activeProgram;
+
 int main(int argc, char *argv[])
 {
 
@@ -67,18 +70,16 @@ int main(int argc, char *argv[])
 
     GLFWwindow *window = init();
 
-    GLuint vertexShader, fragmentShader;
     vertexShader = compile_shader(vertexShaderSource, GL_VERTEX_SHADER);
     fragmentShader = compile_shader(fragmentShaderSource, GL_FRAGMENT_SHADER);
 
     // Link shaders
-    GLuint shaderProgram = glCreateProgram();
+    shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    activeProgram = shaderProgram;
 
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[1024];
@@ -119,9 +120,9 @@ int main(int argc, char *argv[])
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
-        // Render
-        // Clear the colorbuffer
+        // Clear color and depth buffer
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClearColor(0.52, 0.8, 0.92, 1.f);
 
         mat4x4_identity(mvp);
         mat4x4_identity(m);
@@ -144,8 +145,6 @@ int main(int argc, char *argv[])
 
         mat4x4_rotate_Y(m, m, rotationCameraY);
 
-        mat4x4_look_at(m, eye, center, up);
-
         // For rotating camera with center at eye
         mat4x4_translate(mEye, -eye[0], -eye[1], -eye[2]);
         mat4x4_mul(m, m, mEye);
@@ -162,7 +161,7 @@ int main(int argc, char *argv[])
         mat4x4_mul(v, v, m);
         mat4x4_mul(mvp, p, v);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(activeProgram);
         glBindVertexArray(VAO);
 
         glUniformMatrix4fv(rotation_mat_location, 1, GL_FALSE, (GLfloat *)rot_obj);
@@ -174,6 +173,9 @@ int main(int argc, char *argv[])
         // Swap the screen buffers
         glfwSwapBuffers(window);
     }
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
     // Properly de-allocate all resources once they've outlived their purpose
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -221,6 +223,19 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         centerZ += 0.05;
     else if (key == GLFW_KEY_M && action == GLFW_REPEAT)
         centerZ -= 0.05;
+    else if (key == GLFW_KEY_O && action == GLFW_PRESS)
+    {
+        if (shaderAttached)
+        {
+            activeProgram = 0;
+        }
+        else
+        {
+            activeProgram = shaderProgram;
+        }
+
+        shaderAttached = !shaderAttached;
+    }
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
@@ -231,6 +246,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         centerX = 0;
         centerZ = 0;
         rotationCameraY = 0;
+        shaderAttached = true;
+        activeProgram = shaderProgram;
     }
 }
 
