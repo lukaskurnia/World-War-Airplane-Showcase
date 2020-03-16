@@ -1,0 +1,1 @@
+./dist/main ./vertices/airplane.txt 96

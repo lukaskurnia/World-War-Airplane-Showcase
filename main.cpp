@@ -48,8 +48,17 @@ float rotationY = 0;
 float rotationZ = 0;
 float zoom = 0;
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 3)
+    {
+        std::cout << "Usage: ./main <vertex_file> <num_of_vertex>" << std::endl;
+        exit(-1);
+    }
+
+    char *vertex_filename = argv[1];
+    int vertex_count = atoi(argv[2]);
+
     GLFWwindow *window = init();
 
     GLuint vertexShader, fragmentShader;
@@ -67,7 +76,7 @@ int main()
 
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[1024];
-    read_vertices(vertices, "../vertices/cube.txt");
+    read_vertices(vertices, vertex_filename);
 
     GLuint color_location, position_location, mvp_location;
     mvp_location = glGetUniformLocation(shaderProgram, "mvp");
@@ -132,7 +141,7 @@ int main()
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (GLfloat *)mvp);
-        glDrawArrays(GL_TRIANGLES, 0, 40);
+        glDrawArrays(GL_TRIANGLES, 0, vertex_count);
         glBindVertexArray(0);
 
         // Swap the screen buffers
