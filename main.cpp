@@ -16,6 +16,8 @@
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void read_vertices(GLfloat *vertices, std::string filename);
+GLFWwindow *init();
+GLuint compile_shader(const GLchar *shaderSource, GLenum type);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -45,74 +47,21 @@ float rotationX = 0;
 float rotationY = 0;
 float rotationZ = 0;
 
-// The MAIN function, from here we start the application and run the game loop
 int main()
 {
-    // Init GLFW
-    glfwInit();
-    // Set all the required options for GLFW
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    GLFWwindow *window = init();
 
-    // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Project 1", nullptr, nullptr);
-    glfwMakeContextCurrent(window);
-
-    // Set the required callback functions
-    glfwSetKeyCallback(window, key_callback);
-
-    // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
-    glewExperimental = GL_TRUE;
-    // Initialize GLEW to setup the OpenGL Function pointers
-    glewInit();
-
-    // Define the viewport dimensions
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-
-    // Build and compile our shader program
     // Vertex shader
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // Check for compile time errors
-    GLint success;
-    GLchar infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
-    // Fragment shader
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // Check for compile time errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
-    }
+    GLuint vertexShader, fragmentShader;
+    vertexShader = compile_shader(vertexShaderSource, GL_VERTEX_SHADER);
+    fragmentShader = compile_shader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+
     // Link shaders
     GLuint shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    // Check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
-                  << infoLog << std::endl;
-    }
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
@@ -121,15 +70,9 @@ int main()
     read_vertices(vertices, "vertices.txt");
 
     GLuint color_location, position_location, mvp_location;
-
     mvp_location = glGetUniformLocation(shaderProgram, "mvp");
-    std::cout << "MVP Location: " << mvp_location << std::endl;
-
     position_location = glGetAttribLocation(shaderProgram, "position");
-    std::cout << "Position Location: " << position_location << std::endl;
-
     color_location = glGetAttribLocation(shaderProgram, "color_in");
-    std::cout << "Color Location: " << color_location << std::endl;
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -242,4 +185,55 @@ void read_vertices(GLfloat *vertices, std::string filename)
             }
         }
     }
+}
+
+GLFWwindow *init()
+{
+    // Init GLFW
+    glfwInit();
+    // Set all the required options for GLFW
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+    // Create a GLFWwindow object that we can use for GLFW's functions
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Project 1", nullptr, nullptr);
+    glfwMakeContextCurrent(window);
+
+    // Set the required callback functions
+    glfwSetKeyCallback(window, key_callback);
+
+    // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
+    glewExperimental = GL_TRUE;
+    // Initialize GLEW to setup the OpenGL Function pointers
+    glewInit();
+
+    // Define the viewport dimensions
+    int w_width, w_height;
+    glfwGetFramebufferSize(window, &w_width, &w_height);
+    glViewport(0, 0, w_width, w_height);
+
+    return window;
+}
+
+GLuint compile_shader(const GLchar *shaderSource, GLenum type)
+{
+    // Compile shader
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &shaderSource, NULL);
+    glCompileShader(shader);
+
+    // Check for compile time errors
+    GLint success;
+    GLchar infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        std::cout << "Shader compilation failed\n"
+                  << infoLog << std::endl;
+    }
+
+    return shader;
 }
