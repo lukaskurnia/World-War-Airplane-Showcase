@@ -51,7 +51,6 @@ int main()
 {
     GLFWwindow *window = init();
 
-    // Vertex shader
     GLuint vertexShader, fragmentShader;
     vertexShader = compile_shader(vertexShaderSource, GL_VERTEX_SHADER);
     fragmentShader = compile_shader(fragmentShaderSource, GL_FRAGMENT_SHADER);
