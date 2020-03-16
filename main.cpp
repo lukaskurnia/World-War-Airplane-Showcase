@@ -25,12 +25,13 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 // Shaders
 const GLchar *vertexShaderSource = "#version 330 core\n"
                                    "uniform mat4 mvp;\n"
+                                   "uniform mat4 rotation_mat;\n"
                                    "in vec3 position;\n"
                                    "in vec3 color_in;\n"
                                    "out vec3 color;\n"
                                    "void main()\n"
                                    "{\n"
-                                   "gl_Position = mvp * vec4(position, 1.0);\n"
+                                   "gl_Position = mvp * rotation_mat * vec4(position, 1.0);\n"
                                    "color = color_in;\n"
                                    "}\0";
 
@@ -46,6 +47,7 @@ const GLchar *fragmentShaderSource = "#version 330 core\n"
 float rotationX = 0;
 float rotationY = 0;
 float rotationZ = 0;
+float rotationCameraY = 0;
 float zoom = 0;
 
 int main(int argc, char *argv[])
@@ -78,10 +80,11 @@ int main(int argc, char *argv[])
     GLfloat vertices[1024];
     read_vertices(vertices, vertex_filename);
 
-    GLuint color_location, position_location, mvp_location;
+    GLuint color_location, position_location, mvp_location, rotation_mat_location;
     mvp_location = glGetUniformLocation(shaderProgram, "mvp");
     position_location = glGetAttribLocation(shaderProgram, "position");
     color_location = glGetAttribLocation(shaderProgram, "color_in");
+    rotation_mat_location = glGetUniformLocation(shaderProgram, "rotation_mat");
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -108,7 +111,7 @@ int main(int argc, char *argv[])
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
-        mat4x4 m, v, p;
+        mat4x4 m, v, p, rot_obj;
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
@@ -118,7 +121,9 @@ int main(int argc, char *argv[])
 
         mat4x4_identity(mvp);
         mat4x4_identity(m);
+        mat4x4_identity(v);
         mat4x4_identity(p);
+        mat4x4_identity(rot_obj);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -132,17 +137,22 @@ int main(int argc, char *argv[])
         vec3 up = {0.f, 1.f, 0.f};
         mat4x4_look_at(v, eye, center, up);
 
-        mat4x4_rotate_X(m, m, rotationX);
-        mat4x4_rotate_Y(m, m, rotationY);
-        mat4x4_rotate_Z(m, m, rotationZ);
+        mat4x4_rotate_Y(m, m, rotationCameraY);
+
+        mat4x4_rotate_X(rot_obj, rot_obj, rotationX);
+        mat4x4_rotate_Y(rot_obj, rot_obj, rotationY);
+        mat4x4_rotate_Z(rot_obj, rot_obj, rotationZ);
 
         mat4x4_mul(v, v, m);
         mat4x4_mul(mvp, p, v);
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
+
+        glUniformMatrix4fv(rotation_mat_location, 1, GL_FALSE, (GLfloat *)rot_obj);
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (GLfloat *)mvp);
         glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+
         glBindVertexArray(0);
 
         // Swap the screen buffers
@@ -179,6 +189,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         zoom -= 0.05;
     else if (key == GLFW_KEY_S && action == GLFW_REPEAT)
         zoom += 0.05;
+    else if (key == GLFW_KEY_J && action == GLFW_REPEAT)
+        rotationCameraY -= 0.05;
+    else if (key == GLFW_KEY_L && action == GLFW_REPEAT)
+        rotationCameraY += 0.05;
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
