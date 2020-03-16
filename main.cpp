@@ -16,6 +16,7 @@
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 void read_vertices(GLfloat *vertices, std::string filename);
+void printHelp();
 GLFWwindow *init();
 GLuint compile_shader(const GLchar *shaderSource, GLenum type);
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
+    printHelp();
     char *vertex_filename = argv[1];
     int vertex_count = atoi(argv[2]);
 
@@ -151,7 +153,7 @@ int main(int argc, char *argv[])
         mat4x4_rotate_X(m, m, centerX);
         mat4x4_rotate_Y(m, m, centerY);
         mat4x4_rotate_Z(m, m, centerZ);
-        mat4x4_translate(mEye, 2 * eye[0], 2 * eye[1], 2 * eye[2]);
+        mat4x4_translate(mEye, eye[0], eye[1], eye[2]);
         mat4x4_mul(m, m, mEye);
 
         mat4x4_rotate_X(rot_obj, rot_obj, rotationX);
@@ -326,4 +328,27 @@ GLuint compile_shader(const GLchar *shaderSource, GLenum type)
     }
 
     return shader;
+}
+
+void printHelp(){
+
+std::cout<< "=========================================================     " << std::endl;
+std::cout<< "  ___ ___         .__           " << std::endl;
+std::cout<< " /   |   \\   ____ |  | ______   " << std::endl;
+std::cout<< "/    ~    \\_/ __ \\|  | \\____ \\  " << std::endl;
+std::cout<< "\\    Y    /\\  ___/|  |_|  |_> > " << std::endl;
+std::cout<< " \\___|_  /  \\___  >____/   __/  " << std::endl;
+std::cout<< "       \\/       \\/     |__|     " << std::endl;
+std::cout<< "========================================================= " << std::endl;
+std::cout<< "Arrow Key Up - Down  = Pitch model   " << std::endl;
+std::cout<< "Arrow Key Left - Right = Yaw model " << std::endl;
+std::cout<< "Z - X = Roll model " << std::endl;
+std::cout<< "C - V = Mengitari model dalam lintasan lingkaran " << std::endl;
+std::cout<< "W - S = Mengatur zoom " << std::endl;
+std::cout<< "I - K = Rotate camera ke atas dan ke bawah " << std::endl;
+std::cout<< "J - L = Rotate camera ke kiri dan ke kanan " << std::endl;
+std::cout<< "N - M = Roll camera ke kiri dan ke kanan " << std::endl;
+std::cout<< "O = Enable/disable shader " << std::endl;
+std::cout<< "R = Reset " << std::endl;
+
 }
