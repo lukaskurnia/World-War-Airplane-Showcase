@@ -49,9 +49,13 @@ float rotationY = 0;
 float rotationZ = 0;
 float rotationCameraY = 0;
 float zoom = 0;
+float centerX = 0;
+float centerY = 0;
+float centerZ = 0;
 
 int main(int argc, char *argv[])
 {
+
     if (argc < 3)
     {
         std::cout << "Usage: ./main <vertex_file> <num_of_vertex>" << std::endl;
@@ -111,7 +115,7 @@ int main(int argc, char *argv[])
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
-        mat4x4 m, v, p, rot_obj;
+        mat4x4 m, v, p, rot_obj, mEye;
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
@@ -124,6 +128,7 @@ int main(int argc, char *argv[])
         mat4x4_identity(v);
         mat4x4_identity(p);
         mat4x4_identity(rot_obj);
+        mat4x4_identity(mEye);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -138,6 +143,17 @@ int main(int argc, char *argv[])
         mat4x4_look_at(v, eye, center, up);
 
         mat4x4_rotate_Y(m, m, rotationCameraY);
+
+        mat4x4_look_at(m, eye, center, up);
+
+        // For rotating camera with center at eye
+        mat4x4_translate(mEye, -eye[0], -eye[1], -eye[2]);
+        mat4x4_mul(m, m, mEye);
+        mat4x4_rotate_X(m, m, centerX);
+        mat4x4_rotate_Y(m, m, centerY);
+        mat4x4_rotate_Z(m, m, centerZ);
+        mat4x4_translate(mEye, 2 * eye[0], 2 * eye[1], 2 * eye[2]);
+        mat4x4_mul(m, m, mEye);
 
         mat4x4_rotate_X(rot_obj, rot_obj, rotationX);
         mat4x4_rotate_Y(rot_obj, rot_obj, rotationY);
@@ -189,16 +205,32 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         zoom -= 0.05;
     else if (key == GLFW_KEY_S && action == GLFW_REPEAT)
         zoom += 0.05;
-    else if (key == GLFW_KEY_J && action == GLFW_REPEAT)
+    else if (key == GLFW_KEY_C && action == GLFW_REPEAT)
         rotationCameraY -= 0.05;
-    else if (key == GLFW_KEY_L && action == GLFW_REPEAT)
+    else if (key == GLFW_KEY_V && action == GLFW_REPEAT)
         rotationCameraY += 0.05;
+    else if (key == GLFW_KEY_I && action == GLFW_REPEAT)
+        centerX += 0.05;
+    else if (key == GLFW_KEY_K && action == GLFW_REPEAT)
+        centerX -= 0.05;
+    else if (key == GLFW_KEY_L && action == GLFW_REPEAT)
+        centerY += 0.05;
+    else if (key == GLFW_KEY_J && action == GLFW_REPEAT)
+        centerY -= 0.05;
+    else if (key == GLFW_KEY_N && action == GLFW_REPEAT)
+        centerZ += 0.05;
+    else if (key == GLFW_KEY_M && action == GLFW_REPEAT)
+        centerZ -= 0.05;
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
         rotationY = 0;
         rotationZ = 0;
         zoom = 0;
+        centerY = 0;
+        centerX = 0;
+        centerZ = 0;
+        rotationCameraY = 0;
     }
 }
 
