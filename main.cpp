@@ -67,7 +67,7 @@ int main()
 
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[1024];
-    read_vertices(vertices, "vertices.txt");
+    read_vertices(vertices, "../vertices/cube.txt");
 
     GLuint color_location, position_location, mvp_location;
     mvp_location = glGetUniformLocation(shaderProgram, "mvp");
