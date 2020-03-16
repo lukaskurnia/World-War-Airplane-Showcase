@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 // Linmath
 #include "deps/linmath.h"
@@ -12,6 +15,7 @@
 
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void read_vertices(GLfloat *vertices, std::string filename);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -113,23 +117,8 @@ int main()
     glDeleteShader(fragmentShader);
 
     // Set up vertex data (and buffer(s)) and attribute pointers
-    GLfloat vertices[] = {
-        // Front side
-        -0.6f, -0.4f, 0.4f, 1.f, 0.f, 0.f,
-        0.6f, -0.4f, 0.4f, 1.f, 0.f, 0.f,
-        0.f, 0.6f, 0.0f, 1.f, 0.f, 0.f,
-        // Left side
-        -0.6f, -0.4f, 0.4f, 0.f, 1.f, 0.f,
-        0.f, -0.4f, -0.6f, 0.f, 1.f, 0.f,
-        0.f, 0.6f, 0.0f, 0.f, 1.f, 0.f,
-        // Right side
-        0.6f, -0.4f, 0.4f, 0.f, 0.f, 1.f,
-        0.f, -0.4f, -0.6f, 0.f, 0.f, 1.f,
-        0.f, 0.6f, 0.0f, 0.f, 0.f, 1.f,
-        // Bottom side
-        0.6f, -0.4f, 0.4f, 1.f, 1.f, 1.f,
-        -0.6f, -0.4f, 0.4f, 1.f, 1.f, 1.f,
-        0.f, -0.4f, -0.6f, 1.f, 1.f, 1.f};
+    GLfloat vertices[1024];
+    read_vertices(vertices, "vertices.txt");
 
     GLuint color_location, position_location, mvp_location;
 
@@ -221,5 +210,36 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         rotationX = 0;
         rotationY = 0;
         rotationZ = 0;
+    }
+}
+
+void read_vertices(GLfloat *vertices, std::string filename)
+{
+    std::ifstream vertices_file;
+    std::string line;
+    int line_count = 0, LINE_SIZE = 6;
+
+    vertices_file.open(filename);
+    if (vertices_file.is_open())
+    {
+        while (std::getline(vertices_file, line))
+        {
+            std::istringstream in(line);
+
+            if (line[0] != '#')
+            {
+                float x, y, z, r, g, b;
+                in >> x >> y >> z >> r >> g >> b;
+
+                vertices[line_count * LINE_SIZE + 0] = x;
+                vertices[line_count * LINE_SIZE + 1] = y;
+                vertices[line_count * LINE_SIZE + 2] = z;
+                vertices[line_count * LINE_SIZE + 3] = r;
+                vertices[line_count * LINE_SIZE + 4] = g;
+                vertices[line_count * LINE_SIZE + 5] = b;
+
+                line_count++;
+            }
+        }
     }
 }
