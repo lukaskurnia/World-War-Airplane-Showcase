@@ -64,6 +64,15 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+
+
+
+
+
+
+    /**
+     * Setup vertices and input
+     * */
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[1024];
     read_vertices(vertices, "vertices.txt");
@@ -72,6 +81,9 @@ int main()
     mvp_location = glGetUniformLocation(shaderProgram, "mvp");
     position_location = glGetAttribLocation(shaderProgram, "position");
     color_location = glGetAttribLocation(shaderProgram, "color_in");
+
+
+
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -99,7 +111,9 @@ int main()
 
     // Game loop
     while (!glfwWindowShouldClose(window))
-    {
+    {        
+
+
         mat4x4 m;
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
@@ -111,7 +125,11 @@ int main()
         mat4x4_identity(mvp);
         mat4x4_identity(m);
 
-        mat4x4_rotate_X(m, m, (float)glfwGetTime());
+        // mat4x4_rotate_Y(m, m, (float)glfwGetTime());
+        mat4x4_rotate_X(m, m, rotationX);
+        mat4x4_rotate_Y(m, m, rotationY);
+        mat4x4_rotate_Z(m, m, rotationZ);
+        // mat4x4_translate(m, 0.2,0.2,0.2);
         mat4x4_mul(mvp, mvp, m);
 
         // Draw our first triangle
@@ -123,6 +141,8 @@ int main()
 
         // Swap the screen buffers
         glfwSwapBuffers(window);
+
+        // glfwPollEvents();  
     }
     // Properly de-allocate all resources once they've outlived their purpose
     glDeleteVertexArrays(1, &VAO);
@@ -140,13 +160,23 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     else if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT)
-        rotationY -= 0.05;
-    else if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT)
+        // rotationY -= 0.05;
         rotationY += 0.05;
+    else if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT)
+        // rotationY += 0.05;
+        rotationY -= 0.05;
     else if (key == GLFW_KEY_UP && action == GLFW_REPEAT)
-        rotationX -= 0.05;
-    else if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT)
+        // rotationX -= 0.05;
         rotationX += 0.05;
+    else if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT)
+        // rotationX += 0.05;
+        rotationX -= 0.05;
+    else if (key == GLFW_KEY_Z  && action == GLFW_REPEAT)
+        // rotationX -= 0.05;
+        rotationZ += 0.05;
+    else if (key == GLFW_KEY_X && action == GLFW_REPEAT)
+        // rotationX += 0.05;
+        rotationZ -= 0.05;
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
