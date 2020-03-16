@@ -46,6 +46,7 @@ const GLchar *fragmentShaderSource = "#version 330 core\n"
 float rotationX = 0;
 float rotationY = 0;
 float rotationZ = 0;
+float zoom = 0;
 
 int main()
 {
@@ -64,15 +65,6 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-
-
-
-
-
-
-    /**
-     * Setup vertices and input
-     * */
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[1024];
     read_vertices(vertices, "vertices.txt");
@@ -82,13 +74,9 @@ int main()
     position_location = glGetAttribLocation(shaderProgram, "position");
     color_location = glGetAttribLocation(shaderProgram, "color_in");
 
-
-
-
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -103,18 +91,15 @@ int main()
     mat4x4 mvp;
     mat4x4_identity(mvp);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
-
-    glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     glEnable(GL_DEPTH_TEST);
 
     // Game loop
     while (!glfwWindowShouldClose(window))
-    {        
-
-
-        mat4x4 m;
+    {
+        mat4x4 m, p;
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
@@ -124,13 +109,25 @@ int main()
 
         mat4x4_identity(mvp);
         mat4x4_identity(m);
+        mat4x4_identity(p);
 
-        // mat4x4_rotate_Y(m, m, (float)glfwGetTime());
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
+        float ratio = width / (float)height;
+
+        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+
+        vec3 eye = {0.f, 0.f, 0.f + zoom};
+        vec3 center = {0.f, 0.f, -2.f + zoom};
+        vec3 up = {0.f, 1.f, 0.f + zoom};
+        mat4x4_look_at(m, eye, center, up);
+
         mat4x4_rotate_X(m, m, rotationX);
         mat4x4_rotate_Y(m, m, rotationY);
         mat4x4_rotate_Z(m, m, rotationZ);
-        // mat4x4_translate(m, 0.2,0.2,0.2);
-        mat4x4_mul(mvp, mvp, m);
+
+        mat4x4_mul(mvp, p, m);
 
         // Draw our first triangle
         glUseProgram(shaderProgram);
@@ -141,8 +138,6 @@ int main()
 
         // Swap the screen buffers
         glfwSwapBuffers(window);
-
-        // glfwPollEvents();  
     }
     // Properly de-allocate all resources once they've outlived their purpose
     glDeleteVertexArrays(1, &VAO);
@@ -171,17 +166,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     else if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT)
         // rotationX += 0.05;
         rotationX -= 0.05;
-    else if (key == GLFW_KEY_Z  && action == GLFW_REPEAT)
+    else if (key == GLFW_KEY_Z && action == GLFW_REPEAT)
         // rotationX -= 0.05;
         rotationZ += 0.05;
     else if (key == GLFW_KEY_X && action == GLFW_REPEAT)
         // rotationX += 0.05;
         rotationZ -= 0.05;
+    else if (key == GLFW_KEY_W && action == GLFW_REPEAT)
+        zoom += 0.01;
+    else if (key == GLFW_KEY_S && action == GLFW_REPEAT)
+        zoom -= 0.01;
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         rotationX = 0;
         rotationY = 0;
         rotationZ = 0;
+        zoom = 1;
     }
 }
 
@@ -237,11 +237,6 @@ GLFWwindow *init()
     glewExperimental = GL_TRUE;
     // Initialize GLEW to setup the OpenGL Function pointers
     glewInit();
-
-    // Define the viewport dimensions
-    int w_width, w_height;
-    glfwGetFramebufferSize(window, &w_width, &w_height);
-    glViewport(0, 0, w_width, w_height);
 
     return window;
 }
